@@ -2,10 +2,25 @@ import { Fragment, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Icon } from "./Experience.jsx";
 export function Banner({ tone = "ok", icon = "✓", title, children }) {
+  const statusIcon = {
+    "✓": "check",
+    "×": "close",
+    "!": "alert",
+    "?": "help",
+    "–": "minus",
+    "≠": "mismatch",
+  }[icon];
   return (
     <div className={`banner s-${tone}`}>
       <div className="ic" aria-hidden="true">
-        {icon === "✓" ? <Icon name="check" className="status-check" /> : icon}
+        {statusIcon ? (
+          <Icon
+            name={statusIcon}
+            className={statusIcon === "check" ? "status-check" : undefined}
+          />
+        ) : (
+          icon
+        )}
       </div>
       <div>
         <h2>{title}</h2>
@@ -88,7 +103,14 @@ export function Checks({ items, positive = true }) {
   return (
     <ul className={`tick ${positive ? "y" : "n"}`}>
       {items.map((item) => (
-        <li key={item}>{item}</li>
+        <li key={item}>
+          <Icon
+            name={positive ? "check" : "close"}
+            className="check-list-icon"
+            size={18}
+          />
+          {item}
+        </li>
       ))}
     </ul>
   );

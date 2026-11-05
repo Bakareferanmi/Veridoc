@@ -2132,3 +2132,32 @@ html {
     margin-top: 22px;
   }
 }
+/* The brand mark stands on its own; its accessible name stays on the link. */
+a.brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+}
+a.brand svg {
+  width: 30px;
+  height: 30px;
+}
+.tick.y li::before,
+.tick.n li::before {
+  content: none;
+}
+.check-list-icon {
+  position: absolute;
+  left: 0;
+  top: 14px;
+}
+.tick.y .check-list-icon {
+  color: var(--ok);
+}
+.tick.n .check-list-icon {
+  color: var(--bad);
+}

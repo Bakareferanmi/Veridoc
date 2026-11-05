@@ -64,7 +64,7 @@ export default function Institution() {
                 <span
                   className={`dot ${i < 4 ? "done" : i === 4 ? "now" : ""}`}
                 >
-                  {i < 4 ? "✓" : i + 1}
+                  {i < 4 ? <Icon name="check" size={16} /> : i + 1}
                 </span>
                 <div>
                   {title}

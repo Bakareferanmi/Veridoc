@@ -24,6 +24,7 @@ Deploy the `dist/` directory to any static host. Navigation uses URL fragments, 
 - `src/App.jsx`: role-aware navigation and page-session share previews.
 - `src/pages/`: verification, institution, reviewer, seal, references, appeals, holder, sign-in and regulator screens.
 - `src/components/UI.jsx`: shared banners, cards, QR codes, seal, details and audit entries.
+- `src/components/Experience.jsx`: Hugeicons, theme controls and action notifications.
 - `src/data.js`: original illustrative records and rubric data.
 - `src/lib/assessment.js`: grading rules, QR reference parsing and date helpers.
 - `src/styles.css`: original styling plus React accessibility and layout fixes.

@@ -257,7 +257,6 @@ export default function App() {
                 strokeLinejoin="round"
               />
             </svg>
-            VERIDOC
           </a>
           <div className="header-controls">
             {navigation()}

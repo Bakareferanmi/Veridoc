@@ -44,3 +44,9 @@ Review scoring enforces category thresholds and mandatory gates. Failed mandator
 The interface includes staggered page entrances, a sliding method indicator, animated verification results and check marks, hover/press feedback, and dismissible action notifications. All animation and smooth scrolling respect `prefers-reduced-motion`.
 
 Light/dark selection is saved as a local display preference. Demo data remains in memory. Mobile workspaces use a four-item bottom navigation with a dismissible More panel. Keyboard focus follows page navigation and explicit verification submissions. Reference entry accepts pasted QR URLs, shows inline validation, and keeps the last checked reference separate from unfinished edits. The institution register supports text search, status filters and an empty state. Workspace handoff remembers the requested screen when the selected role can open it.
+
+## Favicon and share previews
+
+`public/` contains the shield favicon (SVG, multi-size ICO and PNG), an Apple touch icon, and a 1200×630 Open Graph image with its editable SVG source. `index.html` includes Open Graph and X/Twitter metadata in the initial HTML.
+
+When deploying on another domain, update the canonical URL, `og:url`, and absolute image URLs in `index.html`. Social crawlers need public access to both the page and its image; the private preview is not crawlable.

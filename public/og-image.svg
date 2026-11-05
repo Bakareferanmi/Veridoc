@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#EEF1F4"/>
+<g transform="translate(78 52) scale(2.4)" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M16 2l11 4v9c0 7-4.6 12.4-11 15C9.6 27.4 5 22 5 15V6z" stroke="#14213D" stroke-width="2.4"/><path d="M10.5 15.5l4 4 7-8" stroke="#0F7B6C" stroke-width="2.6"/></g>
+<g fill="#14213D" font-family="Liberation Sans,Arial,sans-serif" font-weight="700" font-size="94" letter-spacing="-4"><text x="88" y="298">Verify a</text><text x="88" y="405">credential.</text></g>
+<rect x="766" y="150" width="346" height="330" rx="28" fill="#FFFFFF" stroke="#D5DBE3" stroke-width="2"/>
+<g fill="none" stroke="#0F7B6C"><circle cx="939" cy="315" r="112" stroke-width="2" stroke-dasharray="4 7"/><circle cx="939" cy="315" r="92" stroke-width="3"/><circle cx="939" cy="315" r="77" stroke-width="1"/></g>
+<path d="m901 316 26 27 51-57" fill="none" stroke="#0F7B6C" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M88 548h1024" stroke="#D5DBE3" stroke-width="2"/>
+<text x="88" y="590" fill="#14213D" font-family="Liberation Sans,Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="4">VERIDOC</text>
+</svg>

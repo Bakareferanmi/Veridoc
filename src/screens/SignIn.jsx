@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAccount, api } from "../components/Account.jsx";
 import { Icon, useNotify } from "../components/Experience.jsx";
 import { Page, ErrorText, Tag } from "../components/UI.jsx";
+import { ACCESS_REASONS } from "../lib/onboarding.js";
 const roles = {
   holder: ["Credential holder", "Profile, qualifications and opportunities"],
   institution: ["Institution admin", "Issuance, requests and Trust Seal"],
@@ -16,11 +17,23 @@ export default function SignIn({ onOpen }) {
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const [requests, setRequests] = useState(null);
+  const [reviewNotes, setReviewNotes] = useState({});
+  const availableRoles = Object.keys(roles).filter(
+    (key) =>
+      key !== "holder" &&
+      !account.roles.some((item) => item.role === key) &&
+      !account.requests?.some(
+        (item) => item.data.role === key && item.data.status === "Pending",
+      ),
+  );
+  const selectedRole = availableRoles.includes(requested)
+    ? requested
+    : availableRoles[0] || "";
   async function request(event) {
     event.preventDefault();
     setBusy(true);
     try {
-      await api("/api/access/request", { role: requested, note });
+      await api("/api/access/request", { role: selectedRole, note });
       setNote("");
       await account.reload();
       notify("Access request submitted.");
@@ -40,7 +53,12 @@ export default function SignIn({ onOpen }) {
   }
   async function decide(id, status) {
     try {
-      await api("/api/admin/access", { id, status, scope: "Nigeria" });
+      await api("/api/admin/access", {
+        id,
+        status,
+        scope: "Nigeria",
+        reviewNote: reviewNotes[id] || "",
+      });
       await loadRequests();
       notify(`Access ${status.toLowerCase()}.`);
     } catch (e) {
@@ -101,50 +119,111 @@ export default function SignIn({ onOpen }) {
           </div>
           <div className="cols">
             <div className="card">
-              <h3>Request another role</h3>
-              <form className="form single" onSubmit={request}>
-                <label className="fld">
-                  Role
-                  <select
-                    value={requested}
-                    onChange={(e) => setRequested(e.target.value)}
-                  >
-                    {Object.entries(roles)
-                      .filter(
-                        ([key]) =>
-                          key !== "holder" &&
-                          !account.roles.some((item) => item.role === key),
-                      )
-                      .map(([key, [label]]) => (
+              <h3>Role access</h3>
+              {availableRoles.length > 0 && (
+                <form className="form single" onSubmit={request}>
+                  <label className="fld">
+                    Role
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => setRequested(e.target.value)}
+                    >
+                      {availableRoles.map((key) => (
                         <option value={key} key={key}>
-                          {label}
+                          {roles[key][0]}
                         </option>
                       ))}
-                  </select>
-                </label>
-                <label className="fld">
-                  Organisation and access reason
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    maxLength={1000}
-                  />
-                </label>
-                <button
-                  className="btn-primary"
-                  disabled={busy || account.roles.length === 4}
-                >
-                  {busy ? "Submitting…" : "Request access"}
-                </button>
-              </form>
+                    </select>
+                  </label>
+                  <p className="note">{ACCESS_REASONS[selectedRole]}</p>
+                  <label className="fld">
+                    Organisation and access reason
+                    <textarea
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      maxLength={1000}
+                      required
+                      placeholder="Organisation, your role and the access you need"
+                    />
+                  </label>
+                  <button
+                    className="btn-primary"
+                    disabled={busy || !note.trim()}
+                  >
+                    {busy ? "Submitting…" : "Request access"}
+                  </button>
+                </form>
+              )}
+              {account.roles.length === 4 && (
+                <p className="note">All workspaces are assigned.</p>
+              )}
               {account.requests?.map((item) => (
                 <div className="ref" key={item.id}>
                   <div className="top">
                     <span>{roles[item.data.role][0]}</span>
-                    <Tag tone="neutral">{item.data.status}</Tag>
+                    <Tag
+                      tone={item.data.status === "Approved" ? "ok" : "neutral"}
+                    >
+                      {item.data.status === "Pending"
+                        ? "Awaiting approval"
+                        : item.data.status}
+                    </Tag>
                   </div>
+                  <p className="note">
+                    {item.data.status === "Pending"
+                      ? ACCESS_REASONS[item.data.role]
+                      : item.data.status === "Approved"
+                        ? "Access approved. Open your workspace to begin setup."
+                        : "Access was not approved. Check your organisation and access reason before requesting again."}
+                  </p>
+                  {item.data.reviewNote && (
+                    <p className="access-review-note">
+                      <strong>Review note</strong>
+                      <br />
+                      {item.data.reviewNote}
+                    </p>
+                  )}
+                  <p className="small-muted">
+                    {item.data.status === "Pending" ? "Submitted" : "Reviewed"}{" "}
+                    {new Date(
+                      item.data.reviewedAt || item.updated_at,
+                    ).toLocaleDateString("en-GB")}
+                  </p>
+                  {item.data.status === "Pending" && (
+                    <p className="note">
+                      Your holder workspace remains available while this is
+                      reviewed.
+                    </p>
+                  )}
+                  {item.data.status === "Approved" &&
+                    account.roles.some(
+                      (grant) => grant.role === item.data.role,
+                    ) && (
+                      <button
+                        className="ghost"
+                        onClick={() => onOpen(item.data.role)}
+                      >
+                        Open workspace
+                      </button>
+                    )}
                 </div>
               ))}
+              {account.requests?.length > 0 && (
+                <button
+                  className="ghost mt"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      await account.reload();
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {busy ? "Checking…" : "Refresh access status"}
+                </button>
+              )}
             </div>
             <div className="card">
               <h3>Account access</h3>
@@ -165,9 +244,10 @@ export default function SignIn({ onOpen }) {
                   <button className="ghost mt" onClick={loadRequests}>
                     Manage access requests
                   </button>
-                  {requests?.length === 0 && (
-                    <p className="note">No requests.</p>
-                  )}
+                  {requests &&
+                    !requests.some((row) => row.data.status === "Pending") && (
+                      <p className="note">No requests.</p>
+                    )}
                   {requests
                     ?.filter((r) => r.data.status === "Pending")
                     .map((row) => (
@@ -176,6 +256,20 @@ export default function SignIn({ onOpen }) {
                         <p>
                           {roles[row.data.role][0]} · {row.data.note}
                         </p>
+                        <label className="fld">
+                          Review note (optional)
+                          <textarea
+                            maxLength={600}
+                            value={reviewNotes[row.id] || ""}
+                            onChange={(event) =>
+                              setReviewNotes({
+                                ...reviewNotes,
+                                [row.id]: event.target.value,
+                              })
+                            }
+                            placeholder="Explain the decision or what is missing"
+                          />
+                        </label>
                         <div className="actions">
                           <button
                             className="ghost"

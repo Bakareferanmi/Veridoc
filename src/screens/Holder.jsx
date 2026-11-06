@@ -9,6 +9,8 @@ import {
   EvidenceEditor,
 } from "../components/WorkspaceUI.jsx";
 import { FRAMEWORKS } from "../lib/frameworks.js";
+import SetupChecklist from "../components/SetupChecklist.jsx";
+import { focusSection } from "../components/WorkspaceUI.jsx";
 export default function Holder({ initialTab = "overview" }) {
   const workspace = useWorkspace("holder"),
     [tab, setTab] = useState(initialTab),
@@ -83,6 +85,15 @@ export default function Holder({ initialTab = "overview" }) {
       {mutation.feedback}
       {tab === "overview" && (
         <>
+          <SetupChecklist
+            role="holder"
+            data={d}
+            reload={workspace.reload}
+            onAction={(step) => {
+              setTab(step === "profile" ? "profile" : "qualifications");
+              focusSection(`holder-${step}`);
+            }}
+          />
           <Stats
             items={[
               [d.qualifications.length, "Qualifications"],
@@ -159,7 +170,9 @@ export default function Holder({ initialTab = "overview" }) {
       )}
       {tab === "profile" && (
         <div className="card mt">
-          <h3>Professional profile</h3>
+          <h3 id="holder-profile" tabIndex={-1}>
+            Professional profile
+          </h3>
           <form
             className="form"
             onSubmit={async (e) => {
@@ -232,7 +245,9 @@ export default function Holder({ initialTab = "overview" }) {
               )}
             </div>
             <div className="card">
-              <h3>Add qualification</h3>
+              <h3 id="holder-qualifications" tabIndex={-1}>
+                Add qualification
+              </h3>
               <form
                 className="form single"
                 onSubmit={async (e) => {
@@ -303,7 +318,9 @@ export default function Holder({ initialTab = "overview" }) {
             </div>
           )}
           <div className="card mb">
-            <h3>Request an assessment</h3>
+            <h3 id="holder-assessment" tabIndex={-1}>
+              Request an assessment
+            </h3>
             <EvidenceEditor
               items={evidence}
               setItems={setEvidence}

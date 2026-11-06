@@ -2690,3 +2690,123 @@ a.brand svg {
     font-size: 11px;
   }
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.setup-card {
+  margin: 22px 0;
+  border-color: var(--ok);
+}
+.setup-card h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.setup-card progress {
+  width: 100%;
+  height: 5px;
+  border: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  accent-color: var(--ok);
+  background: var(--line);
+}
+.setup-card progress::-webkit-progress-bar {
+  background: var(--line);
+}
+.setup-card progress::-webkit-progress-value {
+  background: var(--ok);
+}
+.setup-card progress::-moz-progress-bar {
+  background: var(--ok);
+}
+.setup-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  padding: 0;
+  margin: 20px 0;
+  list-style: none;
+}
+.setup-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.setup-steps li[aria-current="step"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.setup-steps .is-done {
+  color: var(--ok);
+}
+.setup-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font: 12px var(--mono);
+}
+.setup-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.setup-next .note {
+  margin: 0;
+  max-width: 620px;
+}
+.setup-next .btn-primary {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.setup-confirm {
+  max-width: 680px;
+}
+.setup-confirm > p {
+  margin-bottom: 12px;
+}
+.setup-confirm .gate {
+  margin: 18px 0;
+}
+.access-review-note {
+  border-left: 2px solid var(--ok);
+  padding-left: 12px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+[id^="holder-"],
+#reviewer-cases,
+#reviewer-evidence,
+#regulator-records {
+  scroll-margin-top: 110px;
+}
+@media (max-width: 680px) {
+  .setup-steps {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .setup-next {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .setup-next .btn-primary {
+    margin-left: 0;
+    width: 100%;
+  }
+}

@@ -8,6 +8,8 @@ import { Banner, Page, Stats, Tag } from "../components/UI.jsx";
 import { Empty, useMutation } from "../components/WorkspaceUI.jsx";
 import { FRAMEWORKS, EVIDENCE_GATES } from "../lib/frameworks.js";
 import { assess } from "../lib/assessment.js";
+import SetupChecklist from "../components/SetupChecklist.jsx";
+import { focusSection } from "../components/WorkspaceUI.jsx";
 export default function Review() {
   const workspace = useWorkspace("reviewer"),
     account = useAccount(),
@@ -47,6 +49,19 @@ export default function Review() {
   }
   return (
     <Page title="Reviewer">
+      <SetupChecklist
+        role="reviewer"
+        data={d}
+        reload={workspace.reload}
+        onAction={async (step) => {
+          await workspace.reload();
+          focusSection(
+            step === "decision" && current
+              ? "reviewer-evidence"
+              : "reviewer-cases",
+          );
+        }}
+      />
       <Stats
         items={[
           [d.cases.length, "Assigned cases"],
@@ -61,7 +76,9 @@ export default function Review() {
       {mutation.feedback}
       <div className="review-queue">
         <div className="card">
-          <h3>Your cases</h3>
+          <h3 id="reviewer-cases" tabIndex={-1}>
+            Your cases
+          </h3>
           {d.cases.length ? (
             <div className="case-list">
               {d.cases.map((row) => (
@@ -149,7 +166,9 @@ export default function Review() {
                 </p>
               </div>
               <div className="card mb-sm">
-                <h3>Submitted evidence</h3>
+                <h3 id="reviewer-evidence" tabIndex={-1}>
+                  Submitted evidence
+                </h3>
                 {current.data.evidence.map((item, i) => (
                   <label className="gate evidence-check" key={i}>
                     <input

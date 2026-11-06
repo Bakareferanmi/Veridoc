@@ -8,6 +8,8 @@ import {
   EvidenceEditor,
 } from "../components/WorkspaceUI.jsx";
 import { FRAMEWORKS } from "../lib/frameworks.js";
+import SetupChecklist from "../components/SetupChecklist.jsx";
+import { focusSection } from "../components/WorkspaceUI.jsx";
 export default function Institution() {
   const workspace = useWorkspace("institution"),
     [tab, setTab] = useState("overview"),
@@ -61,6 +63,21 @@ export default function Institution() {
       {mutation.feedback}
       {tab === "overview" && (
         <>
+          <SetupChecklist
+            role="institution"
+            data={d}
+            reload={workspace.reload}
+            onAction={(step) => {
+              setTab(step === "profile" ? "profile" : "review");
+              focusSection(
+                step === "profile"
+                  ? "institution-profile"
+                  : step === "seal"
+                    ? "institution-decisions"
+                    : "institution-assessment",
+              );
+            }}
+          />
           <Stats
             items={[
               [seal ? `Grade ${seal.grade}` : "Not assessed", "Trust Seal"],
@@ -116,7 +133,7 @@ export default function Institution() {
         </>
       )}
       {tab === "profile" && (
-        <div className="card mt">
+        <div className="card mt" id="institution-profile" tabIndex={-1}>
           <form
             className="form"
             onSubmit={async (e) => {
@@ -266,7 +283,9 @@ export default function Institution() {
       {tab === "review" && (
         <div className="cols">
           <div className="card">
-            <h3>Request verification</h3>
+            <h3 id="institution-assessment" tabIndex={-1}>
+              Request verification
+            </h3>
             <div className="scope-card">
               <strong>{FRAMEWORKS[profile.kind].singular}</strong>
               <p>
@@ -297,7 +316,9 @@ export default function Institution() {
             </button>
           </div>
           <div className="card">
-            <h3>Requests & decisions</h3>
+            <h3 id="institution-decisions" tabIndex={-1}>
+              Requests & decisions
+            </h3>
             {d.cases.length ? (
               d.cases.map((row) => (
                 <div className="ref" key={row.id}>

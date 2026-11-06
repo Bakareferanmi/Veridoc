@@ -118,6 +118,84 @@ test("authentication and server grants cannot be replaced by a selected role or 
   assert.equal((await s.call("/api/workspaces/reviewer")).status, 403);
   assert.equal((await s.call("/api/admin/access")).status, 403);
 });
+test("setup acknowledgements persist per user and role without granting access", async () => {
+  const s = setup();
+  assert.equal(
+    (
+      await s.call("/api/onboarding", {
+        body: { role: "reviewer", step: "policy" },
+      })
+    ).status,
+    403,
+  );
+  s.grant(s.alice, "reviewer", "*");
+  s.grant(s.alice, "regulator", "Nigeria");
+  assert.equal(
+    (
+      await s.call("/api/onboarding", {
+        body: { role: "reviewer", step: "policy" },
+      })
+    ).status,
+    200,
+  );
+  const reviewer = (await s.call("/api/workspaces/reviewer")).body;
+  assert.ok(reviewer.onboarding.policyVersion);
+  assert.equal(
+    (await s.call("/api/workspaces/regulator")).body.onboarding.policyVersion,
+    undefined,
+  );
+  await s.call("/api/onboarding", {
+    body: { role: "regulator", step: "scope", scope: "Ghana" },
+  });
+  assert.equal(
+    (await s.call("/api/workspaces/regulator")).body.onboarding.confirmedScope,
+    "Nigeria",
+  );
+  assert.equal(
+    (
+      await s.call("/api/onboarding", {
+        body: { role: "reviewer", step: "scope" },
+      })
+    ).status,
+    422,
+  );
+  assert.equal(
+    (
+      await s.call("/api/onboarding", {
+        user: s.bob,
+        body: { role: "regulator", step: "scope" },
+      })
+    ).status,
+    403,
+  );
+});
+
+test("access review notes are visible to their applicant without exposing other requests", async () => {
+  const s = setup();
+  await s.call("/api/access/request", {
+    body: { role: "reviewer", note: "Credential assessor at Example" },
+  });
+  const request = (await s.call("/api/session")).body.requests[0];
+  assert.equal(request.data.status, "Pending");
+  await s.call("/api/admin/access", {
+    user: s.owner,
+    body: {
+      id: request.id,
+      status: "Declined",
+      reviewNote: "Please add your professional affiliation.",
+    },
+  });
+  const reviewed = (await s.call("/api/session")).body.requests[0];
+  assert.equal(reviewed.data.status, "Declined");
+  assert.match(reviewed.data.reviewNote, /affiliation/);
+  assert.ok(reviewed.data.reviewedAt);
+  assert.deepEqual(
+    (await s.call("/api/session", { user: s.bob })).body.requests,
+    [],
+  );
+  assert.equal((await s.call("/api/workspaces/reviewer")).status, 403);
+});
+
 test("profile data persists and client-supplied verification status is discarded", async () => {
   const s = setup();
   await s.call("/api/holder/profile", {

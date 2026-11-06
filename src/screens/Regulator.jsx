@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useWorkspace, AccessState } from "../components/Account.jsx";
 import { Page, Stats, Tag, Field } from "../components/UI.jsx";
 import { Empty, useMutation } from "../components/WorkspaceUI.jsx";
+import SetupChecklist from "../components/SetupChecklist.jsx";
+import { focusSection } from "../components/WorkspaceUI.jsx";
 export default function Regulator() {
   const workspace = useWorkspace("regulator"),
     mutation = useMutation(workspace.reload);
@@ -19,6 +21,15 @@ export default function Regulator() {
   const d = workspace.data;
   return (
     <Page title="Regulator">
+      <SetupChecklist
+        role="regulator"
+        data={d}
+        reload={workspace.reload}
+        onAction={async () => {
+          await workspace.reload();
+          focusSection("regulator-records");
+        }}
+      />
       <div className="section-heading">
         <Tag tone="neutral">
           {d.scope === "*" ? "Assigned oversight" : d.scope}
@@ -41,7 +52,9 @@ export default function Regulator() {
       {mutation.feedback}
       <div className="cols">
         <div className="card">
-          <h3>Institutional verification records</h3>
+          <h3 id="regulator-records" tabIndex={-1}>
+            Institutional verification records
+          </h3>
           {d.records.length ? (
             d.records.map((row) => (
               <div className="ref" key={row.id}>

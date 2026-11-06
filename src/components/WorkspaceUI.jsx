@@ -2,6 +2,13 @@ import { useState } from "react";
 import { useNotify } from "./Experience.jsx";
 import { api } from "./Account.jsx";
 import { ErrorText } from "./UI.jsx";
+export function focusSection(id) {
+  requestAnimationFrame(() => {
+    const section = document.getElementById(id);
+    section?.focus({ preventScroll: true });
+    section?.scrollIntoView({ block: "start", behavior: "auto" });
+  });
+}
 export function SectionTabs({ items, value, onChange }) {
   return (
     <div className="section-tabs" role="group" aria-label="Workspace section">

@@ -7,6 +7,8 @@ React application for identity records, credential verification, evidence-based 
 - Institutional Trust Seal pages with grade, precise scope, verification reference, verification/review dates, source evidence, QR code and share link. The original seal remains visually intact.
 - Versioned frameworks for institutions, individuals and businesses. Scored categories require source evidence. Failed gates block grading, and Grade 3 requires a different assigned reviewer.
 - Dedicated holder, institution, reviewer and regulator workspaces.
+- Role-specific setup checklists with a next action and progress derived from saved records. Reviewer policy and regulator scope acknowledgements persist per account; setup completion does not grant a grade or role.
+- Access requests explain approval checks and waiting states, with applicant-visible administrator review notes.
 - ChatGPT authentication on Sites; database-assigned roles and per-operation server authorization. New accounts receive holder access only. Role requests require administrator approval.
 - Persistent profiles, qualifications, institution profiles, issuer-submitted credentials, review requests, decisions, appeal intake, saved opportunities and consent-based proof sharing in Cloudflare D1.
 - Scope-limited institution and regulator access; user-owned private records; self-review prevention; locked completed decisions; audit events.

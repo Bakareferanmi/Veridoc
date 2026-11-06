@@ -185,6 +185,32 @@ export async function handleApi(request, { db, user, ownerEmail = "" }) {
       }
     };
     const institution = () => requireRole(grants, "institution");
+    const onboarding = async (role) =>
+      (await get(`onboarding:${user.userId}:${role}`))?.data || {};
+    if (path === "/api/onboarding" && method === "POST") {
+      const b = await body();
+      if (!["reviewer", "regulator"].includes(b.role))
+        throw new ApiError(422, "Choose a review workspace.");
+      const grant = requireRole(grants, b.role);
+      if (
+        b.step !== "policy" &&
+        !(b.step === "scope" && b.role === "regulator")
+      )
+        throw new ApiError(422, "Choose a setup step.");
+      const previous = await onboarding(b.role);
+      await put({
+        id: `onboarding:${user.userId}:${b.role}`,
+        kind: "onboarding",
+        data: {
+          ...previous,
+          ...(b.step === "policy"
+            ? { policyVersion: FRAMEWORK_VERSION, policyReviewedAt: time }
+            : { confirmedScope: grant.scope, scopeReviewedAt: time }),
+        },
+      });
+      await audit("Setup acknowledged", b.role);
+      return json({ ok: true });
+    }
     if (path === "/api/session" && method === "GET")
       return json({
         user: {
@@ -255,7 +281,13 @@ export async function handleApi(request, { db, user, ownerEmail = "" }) {
       await put({
         ...row,
         owner: row.owner_id,
-        data: { ...row.data, status: b.status, reviewedBy: user.userId },
+        data: {
+          ...row.data,
+          status: b.status,
+          reviewedBy: user.userId,
+          reviewedAt: time,
+          reviewNote: safeText(b.reviewNote, 600),
+        },
       });
       await audit(`Role ${b.status.toLowerCase()}`, row.id);
       return json({ ok: true });
@@ -603,6 +635,7 @@ export async function handleApi(request, { db, user, ownerEmail = "" }) {
         canReview(row, user, grants),
       );
       return json({
+        onboarding: await onboarding("reviewer"),
         cases: cases.filter(
           (row) =>
             row.owner_id === user.userId ||
@@ -943,6 +976,7 @@ export async function handleApi(request, { db, user, ownerEmail = "" }) {
           (grant.scope === "*" || row.data.jurisdiction === grant.scope),
       );
       return json({
+        onboarding: await onboarding("regulator"),
         scope: grant.scope,
         records: cases,
         confirmations: (await list("confirmation")).filter(

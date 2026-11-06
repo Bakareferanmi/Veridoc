@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Icon } from "./Experience.jsx";
+import { EXAMPLE_SEAL } from "../lib/frameworks.js";
 export function Banner({ tone = "ok", icon = "✓", title, children }) {
   const statusIcon = {
     "✓": "check",
@@ -149,18 +150,18 @@ export function QR({ value }) {
     </div>
   );
 }
-export function Rosette() {
+export function Rosette({ grade = 2, verified = true }) {
   return (
     <svg className="rosette" viewBox="0 0 120 120" aria-hidden="true">
-      <g fill="none" stroke="var(--ok)">
+      <g fill="none" stroke={verified ? "var(--ok)" : "var(--line)"}>
         <circle cx="60" cy="60" r="56" strokeWidth="2" strokeDasharray="3 4" />
         <circle cx="60" cy="60" r="46" strokeWidth="3" />
         <circle cx="60" cy="60" r="38" strokeWidth="1" />
       </g>
       <path
-        d="M42 62l12 12 24-26"
+        d={verified ? "M42 62l12 12 24-26" : "M48 60h24"}
         fill="none"
-        stroke="var(--ok)"
+        stroke={verified ? "var(--ok)" : "var(--muted)"}
         strokeWidth="6"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -173,7 +174,7 @@ export function Rosette() {
         fontSize="9"
         fill="var(--ok)"
       >
-        GRADE 2
+        {grade === null ? "PENDING" : `GRADE ${grade}`}
       </text>
     </svg>
   );
@@ -192,9 +193,12 @@ export function InstitutionSeal() {
           ["Accreditation", "Not claimed"],
 
           ["Status", "Active"],
-          ["Next review", "12 Mar 2028"],
+          ["Next review", "12 Mar 2027"],
         ]}
       />
+      <a className="text-link block-link" href={`#seal/${EXAMPLE_SEAL.id}`}>
+        Open verification record
+      </a>
       <details className="disclosure">
         <summary>Evidence</summary>
         <p>

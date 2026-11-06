@@ -3,5 +3,13 @@ dist/
 .env*
 *.tar.gz
 
-.DS_Store
+.sites-runtime/
+.wrangler/
+.vinext/
+.next/
+.dev.vars*
+outputs/
+*.tsbuildinfo
+
 .openai/
+.DS_Store

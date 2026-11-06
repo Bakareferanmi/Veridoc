@@ -219,6 +219,9 @@ export default function Verify({ navigate, initialReference, active }) {
     <>
       <section className="hero">
         <h1>Verify a credential.</h1>
+        <p className="sample-context">
+          Example register · Live issuer connections are not enabled.
+        </p>
         <div className="search">
           <div
             className="tabs"

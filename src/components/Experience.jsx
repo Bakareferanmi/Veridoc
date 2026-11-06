@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Alert01Icon,
   Award01Icon,
+  Briefcase01Icon,
   Cancel01Icon,
   CloudUploadIcon,
   Download04Icon,
@@ -48,6 +49,7 @@ const icons = {
   institution: UniversityIcon,
   review: Task01Icon,
   seal: Award01Icon,
+  opportunities: Briefcase01Icon,
   references: UserGroupIcon,
   appeals: MessageQuestionIcon,
   holder: IdCardIcon,

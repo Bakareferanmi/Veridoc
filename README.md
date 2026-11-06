@@ -1,52 +1,69 @@
-# VERIDOC React portal
+# VeriDoc
 
-A React + Vite conversion of the supplied `veridoc-portal.html`. The original navy/teal design, fonts, responsive layouts, system dark mode and nine screens are retained.
+React application for identity records, credential verification, evidence-based assessments and opportunities. The navy/teal visual system, shield logo, Trust Seal, Hugeicons and reduced-motion support are retained.
 
-## Run locally
+## What is implemented
 
-Requires Node.js 20.19+ or 22.12+.
+- Institutional Trust Seal pages with grade, precise scope, verification reference, verification/review dates, source evidence, QR code and share link. The original seal remains visually intact.
+- Versioned frameworks for institutions, individuals and businesses. Scored categories require source evidence. Failed gates block grading, and Grade 3 requires a different assigned reviewer.
+- Dedicated holder, institution, reviewer and regulator workspaces.
+- ChatGPT authentication on Sites; database-assigned roles and per-operation server authorization. New accounts receive holder access only. Role requests require administrator approval.
+- Persistent profiles, qualifications, institution profiles, issuer-submitted credentials, review requests, decisions, appeal intake, saved opportunities and consent-based proof sharing in Cloudflare D1.
+- Scope-limited institution and regulator access; user-owned private records; self-review prevention; locked completed decisions; audit events.
+- Expiring proof links return selected fields only and can be revoked. Public access follows the hosting audience.
+- Subscription interest is stored separately from assessments. No subscription, visibility or payment fields enter grading.
+
+## Run
+
+Node.js 24 is recommended (the tests use `node:sqlite`).
 
 ```sh
-npm install
-npm run dev
-```
-
-```sh
-npm test
+npm ci
+npm run db:generate
 npm run build
-npm run preview
 ```
 
-Deploy the `dist/` directory to any static host. Navigation uses URL fragments, so no server-side routing fallback is required.
+Apply each pending migration to the local database once, in order:
 
-## Project structure
+```sh
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_overconfident_shotgun.sql
+```
 
-- `src/App.jsx`: role-aware navigation and page-session share previews.
-- `src/pages/`: verification, institution, reviewer, seal, references, appeals, holder, sign-in and regulator screens.
-- `src/components/UI.jsx`: shared banners, cards, QR codes, seal, details and audit entries.
-- `src/components/Experience.jsx`: Hugeicons, theme controls and action notifications.
-- `src/data.js`: original illustrative records and rubric data.
-- `src/lib/assessment.js`: grading rules, QR reference parsing and date helpers.
-- `src/styles.css`: original styling plus React accessibility and layout fixes.
+```sh
+npm run dev
+npm test
+```
 
-## Prototype scope
+This project now uses Vinext's React/Next-compatible application router with a Cloudflare Worker, rather than a static-only Vite deployment. The original screen components live in `src/screens/` to avoid accidental Pages Router routes.
 
-This is a frontend prototype with illustrative records. Sign-in opens a role locally using a sample email; no password is requested and the email is not authenticated or submitted. No backend, database or issuer integration is included. Client-side role navigation is not a security boundary.
+## Authentication and administration
 
-Changes remain in memory during navigation and reset on refresh or sign-out. Generated share links demonstrate selected fields, consent, expiry and revocation within the current page session. They do not work across devices or fresh tabs. Real sharing requires server storage and access controls.
+Hosted identity comes from Sites' verified request context through `app/chatgpt-auth.ts`. Sign-in uses the platform-owned `/signin-with-chatgpt` route. The application does not accept a chosen browser role or client-supplied identity as authorization.
 
-Reference lookups match the original sample register. Report downloads contain a clearly labeled text summary of the selected sample outcome. QR scanning reads credential references locally using the camera with browser permission; camera access stops on leaving the screen. Seal and share previews use valid generated QR codes. Uploaded files stay local; document OCR and issuer matching are not implemented. A reference found in a filename can prefill the lookup, but is never treated as a verified document.
+`VERIDOC_ADMIN_EMAIL` is configured as a server-only hosting secret. It bootstraps the site owner's administrative workspaces. Never expose this value through client environment variables. Other users receive holder access and request additional roles; administrators must verify an applicant's organisation and authority before granting privileged access. Regulator grants carry a jurisdiction. Application role grants do not themselves establish statutory recognition.
 
-Review scoring enforces category thresholds and mandatory gates. Failed mandatory gates block recording a grade and allow escalation to a second reviewer. The included tests cover these decision rules and QR reference extraction.
+Local portable preview can use the starter's loopback-only mock sign-in. Managed preview does not simulate authentication. Production never ships the development sign-in mock. Local and hosted D1 databases are separate.
 
-## Motion and usability
+The Sites manifest provisions the `DB` binding and applies committed, schema-only migrations during publication. If deploying outside Sites, provide the same Worker/D1 runtime and replace the authentication adapter with a verified provider integration that preserves the server-side role and ownership checks. A static export cannot provide the authenticated workspaces.
 
-The interface includes staggered page entrances, a sliding method indicator, animated verification results and check marks, hover/press feedback, and dismissible action notifications. All animation and smooth scrolling respect `prefers-reduced-motion`.
+## Limits and planned integrations
 
-Light/dark selection is saved as a local display preference. Demo data remains in memory. Mobile workspaces use a four-item bottom navigation with a dismissible More panel. Keyboard focus follows page navigation and explicit verification submissions. Reference entry accepts pasted QR URLs, shows inline validation, and keeps the last checked reference separate from unfinished edits. The institution register supports text search, status filters and an empty state. Workspace handoff remembers the requested screen when the selected role can open it.
+The example institution and register are explicitly illustrative. Live issuer, government and accreditation APIs are not connected. Reviewers record source checks; the software does not automatically authenticate documents or confer regulatory recognition. File uploads/OCR are not connected; current review requests use source references.
 
-## Favicon and share previews
+Opportunities are labeled examples, with persistent saving; a live feed and applications are not connected. The Visibility plan records interest only; billing and paid placement are not connected. Both plans use identical assessment rules.
 
-`public/` contains the shield favicon (SVG, multi-size ICO and PNG), an Apple touch icon, and a 1200×630 Open Graph image with its editable SVG source. `index.html` includes Open Graph and X/Twitter metadata in the initial HTML.
+Appeals are stored with an intake timeline and evidence. Independent assignment, case adjudication and outcome publication for appeals are the next workflow step; the interface does not claim an appeal has been reviewed. Grade 3 second-review assignment and confirmation are implemented separately for assessment cases.
 
-When deploying on another domain, update the canonical URL, `og:url`, and absolute image URLs in `index.html`. Social crawlers need public access to both the page and its image; the private preview is not crawlable.
+## Main files
+
+- `app/`: authenticated server adapter, metadata and application entry.
+- `server/service.mjs`: API operations and storage.
+- `server/policy.mjs`: identity, authorization, ownership and origin checks.
+- `server/service.test.mjs`: integration tests using an isolated SQLite database.
+- `src/lib/frameworks.js`: versioned assessment criteria and example seal.
+- `src/lib/assessment.js`: bounded, payment-independent grading rules.
+- `src/screens/`: public pages and dedicated dashboards.
+- `db/schema.ts`, `drizzle/`: schema and append-only migrations.
+- `public/`: favicons, Apple icon and Open Graph image with editable SVG source.
+
+Metadata uses the current hosted origin. Update `metadataBase` in `app/layout.tsx` when moving to another domain. Social crawlers and unauthenticated third-party verification need a publicly accessible page; the current private site's audience is preserved.

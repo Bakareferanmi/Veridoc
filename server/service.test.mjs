@@ -224,6 +224,33 @@ test("profile data persists and client-supplied verification status is discarded
     0,
   );
 });
+test("an unverified standalone email never bootstraps owner privileges", async () => {
+  const s = setup();
+  const unverified = { ...s.owner, emailVerified: false };
+  const response = await handleApi(
+    new Request("https://veridoc.test/api/session"),
+    {
+      db: s.db,
+      user: unverified,
+      ownerEmail: s.owner.email,
+    },
+  );
+  const data = await response.json();
+  assert.equal(data.isAdmin, false);
+  assert.deepEqual(
+    data.roles.map((role) => role.role),
+    ["holder"],
+  );
+  const explicitOwner = await handleApi(
+    new Request("https://veridoc.test/api/session"),
+    {
+      db: s.db,
+      user: unverified,
+      ownerUserId: s.owner.userId,
+    },
+  );
+  assert.equal((await explicitOwner.json()).isAdmin, true);
+});
 test("shared proof discloses only selected fields and revocation survives a later read", async () => {
   const s = setup();
   const qualification = (

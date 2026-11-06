@@ -16,7 +16,12 @@ export async function api(path, body) {
   const data = await response
     .json()
     .catch(() => ({ error: "Service unavailable." }));
-  if (!response.ok) throw new Error(data.error || "Request failed.");
+  if (!response.ok)
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : data.message || "Request failed.",
+    );
   return data;
 }
 export function AccountProvider({ children }) {
@@ -24,6 +29,7 @@ export function AccountProvider({ children }) {
       user: null,
       roles: [],
       isAdmin: false,
+      authMode: import.meta.env.VERIDOC_STANDALONE ? "standalone" : "chatgpt",
     }),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");

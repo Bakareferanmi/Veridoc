@@ -2810,3 +2810,20 @@ a.brand svg {
     width: 100%;
   }
 }
+
+.auth-form {
+  text-align: left;
+  margin-top: 22px;
+}
+.auth-form .gate {
+  margin: 0;
+}
+.auth-form .text-button {
+  justify-self: center;
+}
+.account-id {
+  margin: 0 0 24px;
+}
+.account-id .mono {
+  overflow-wrap: anywhere;
+}

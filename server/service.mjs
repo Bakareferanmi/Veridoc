@@ -27,7 +27,10 @@ const json = (data, status = 200) =>
 function unpack(row) {
   return row ? { ...row, data: JSON.parse(row.data) } : null;
 }
-export async function handleApi(request, { db, user, ownerEmail = "" }) {
+export async function handleApi(
+  request,
+  { db, user, ownerEmail = "", ownerUserId = "" },
+) {
   try {
     checkOrigin(request);
     const path = new URL(request.url).pathname.replace(/\/$/, "");
@@ -96,7 +99,11 @@ export async function handleApi(request, { db, user, ownerEmail = "" }) {
         ),
     ]);
     const isAdmin = Boolean(
-      ownerEmail && user.email.toLowerCase() === ownerEmail.toLowerCase(),
+      ownerUserId
+        ? user.userId === ownerUserId
+        : ownerEmail &&
+            user.emailVerified !== false &&
+            user.email.toLowerCase() === ownerEmail.toLowerCase(),
     );
     if (isAdmin)
       await db.batch(
@@ -217,6 +224,7 @@ export async function handleApi(request, { db, user, ownerEmail = "" }) {
           id: user.userId,
           email: user.email,
           name: user.displayName || user.email,
+          emailVerified: user.emailVerified !== false,
         },
         roles: grants,
         isAdmin,

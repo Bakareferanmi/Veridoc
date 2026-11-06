@@ -1,41 +1,48 @@
 import type { Metadata } from "next";
 import "../src/styles.css";
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    "https://veridoc-react-portal.bakareferanmi96.chatgpt.site",
-  ),
-  title: "VeriDoc · Identity, credentials & opportunity",
-  description: "Identity, credential verification and evidence-based trust.",
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: "/apple-touch-icon.png",
-  },
-  openGraph: {
-    type: "website",
-    siteName: "VeriDoc",
+import { headers } from "next/headers";
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("host") ||
+    "veridoc-react-portal.bakareferanmi96.chatgpt.site";
+  const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
+  return {
+    metadataBase: new URL(`${local ? "http" : "https"}://${host}`),
     title: "VeriDoc · Identity, credentials & opportunity",
     description: "Identity, credential verification and evidence-based trust.",
-    url: "/",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "VeriDoc. Verify a credential.",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "VeriDoc",
-    description: "Identity, credentials and evidence-based trust.",
-    images: ["/og-image.png"],
-  },
-};
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/favicon.svg", type: "image/svg+xml" },
+        { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      ],
+      apple: "/apple-touch-icon.png",
+    },
+    openGraph: {
+      type: "website",
+      siteName: "VeriDoc",
+      title: "VeriDoc · Identity, credentials & opportunity",
+      description:
+        "Identity, credential verification and evidence-based trust.",
+      url: "/",
+      images: [
+        {
+          url: "/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: "VeriDoc. Verify a credential.",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "VeriDoc",
+      description: "Identity, credentials and evidence-based trust.",
+      images: ["/og-image.png"],
+    },
+  };
+}
 export default function RootLayout({
   children,
 }: {

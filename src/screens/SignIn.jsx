@@ -3,6 +3,7 @@ import { useAccount, api } from "../components/Account.jsx";
 import { Icon, useNotify } from "../components/Experience.jsx";
 import { Page, ErrorText, Tag } from "../components/UI.jsx";
 import { ACCESS_REASONS } from "../lib/onboarding.js";
+import StandaloneSignIn from "../components/StandaloneSignIn.jsx";
 const roles = {
   holder: ["Credential holder", "Profile, qualifications and opportunities"],
   institution: ["Institution admin", "Issuance, requests and Trust Seal"],
@@ -73,34 +74,69 @@ export default function SignIn({ onOpen }) {
           Checking account…
         </div>
       ) : !account.user ? (
-        <div className="card signin-card mt">
-          <Icon name="shield" size={32} />
-          <h3>Sign in securely</h3>
-          <p className="note">
-            Workspaces are assigned to your account. Choosing a role does not
-            grant access.
-          </p>
-          <a
-            className="button-link btn-primary mt"
-            href="/signin-with-chatgpt?return_to=%2F%23signin"
-            target="_top"
-          >
-            Continue with ChatGPT
-          </a>
-        </div>
+        account.authMode === "standalone" ? (
+          <StandaloneSignIn />
+        ) : (
+          <div className="card signin-card mt">
+            <Icon name="shield" size={32} />
+            <h3>Sign in securely</h3>
+            <p className="note">
+              Workspaces are assigned to your account. Choosing a role does not
+              grant access.
+            </p>
+            <a
+              className="button-link btn-primary mt"
+              href="/signin-with-chatgpt?return_to=%2F%23signin"
+              target="_top"
+            >
+              Continue with ChatGPT
+            </a>
+          </div>
+        )
       ) : (
         <>
           <div className="account-line">
             <span>{account.user.name}</span>
             <span className="small-muted">{account.user.email}</span>
-            <a
-              className="text-link"
-              href="/signout-with-chatgpt?return_to=%2F%23signin"
-              target="_top"
-            >
-              Sign out
-            </a>
+            {account.authMode === "standalone" ? (
+              <button
+                className="text-button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await api("/api/auth/sign-out", {});
+                    await account.reload();
+                  } catch (e) {
+                    setMessage(e.message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Sign out
+              </button>
+            ) : (
+              <a
+                className="text-link"
+                href="/signout-with-chatgpt?return_to=%2F%23signin"
+                target="_top"
+              >
+                Sign out
+              </a>
+            )}
           </div>
+          {account.authMode === "standalone" && (
+            <details className="disclosure account-id">
+              <summary>Account details</summary>
+              <p className="mono">User ID: {account.user.id}</p>
+              <p className="note">
+                {account.user.emailVerified
+                  ? "Email confirmed"
+                  : "Email not confirmed. Signing in does not verify your identity or credentials."}
+              </p>
+            </details>
+          )}
           <div className="workspace-grid">
             {account.roles.map(({ role, scope }) => (
               <button

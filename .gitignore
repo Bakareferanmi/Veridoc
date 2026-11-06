@@ -10,6 +10,8 @@ dist/
 .dev.vars*
 outputs/
 *.tsbuildinfo
+wrangler.local.json
+.cloudflare/
 
 .openai/
 .DS_Store

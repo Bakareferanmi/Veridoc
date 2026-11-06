@@ -1,6 +1,6 @@
 import vinext from "vinext";
 import { defineConfig } from "vite";
-import hostingConfig from "./.openai/hosting.json";
+import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { configureToolEnvironment } from "./scripts/tool-environment.mjs";
 import { sites } from "./scripts/vite/sites-vite-plugin";
@@ -9,7 +9,12 @@ import { connectorPreview } from "./scripts/vite/connector-preview-plugin.mjs";
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
-const { d1, r2 } = hostingConfig;
+const standalone =
+  process.env.VERIDOC_TARGET === "cloudflare" ||
+  !existsSync(".openai/hosting.json");
+const { d1, r2 } = standalone
+  ? { d1: "DB", r2: null }
+  : JSON.parse(readFileSync(".openai/hosting.json", "utf8"));
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
@@ -44,6 +49,9 @@ export default defineConfig(async ({ command }) => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    define: {
+      "import.meta.env.VERIDOC_STANDALONE": JSON.stringify(standalone),
+    },
     server: {
       ...(managedLinux
         ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] }
@@ -54,26 +62,37 @@ export default defineConfig(async ({ command }) => {
     },
     plugins: [
       vinext(),
-      sites({ mockAuth: !managedLinux }),
-      connectorPreview(),
+      ...(!standalone
+        ? [sites({ mockAuth: !managedLinux }), connectorPreview()]
+        : []),
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         inspectorPort: false,
-        config: {
-          ...localBindingConfig,
-          ...(command === "serve"
-            ? {
-                services: [
-                  {
-                    binding: "CONNECTORS",
-                    service: "sites-connector-preview",
-                    entrypoint: "ConnectorPreview",
-                  },
-                ],
-              }
-            : {}),
-        },
-        ...(command === "serve"
+        ...(standalone
+          ? {
+              configPath:
+                process.env.VERIDOC_CF_CONFIG ||
+                (existsSync("wrangler.local.json")
+                  ? "wrangler.local.json"
+                  : "wrangler.jsonc"),
+            }
+          : {
+              config: {
+                ...localBindingConfig,
+                ...(command === "serve"
+                  ? {
+                      services: [
+                        {
+                          binding: "CONNECTORS",
+                          service: "sites-connector-preview",
+                          entrypoint: "ConnectorPreview",
+                        },
+                      ],
+                    }
+                  : {}),
+              },
+            }),
+        ...(!standalone && command === "serve"
           ? {
               auxiliaryWorkers: [
                 {
@@ -87,6 +106,21 @@ export default defineConfig(async ({ command }) => {
             }
           : {}),
       }),
+      {
+        name: "veridoc-production-files",
+        apply: "build",
+        closeBundle: {
+          order: "post",
+          sequential: true,
+          handler() {
+            const directory = "dist/server";
+            if (!existsSync(directory)) return;
+            for (const name of readdirSync(directory))
+              if (name.startsWith(".dev.vars") || name.startsWith(".env"))
+                rmSync(`${directory}/${name}`, { force: true });
+          },
+        },
+      },
     ],
   };
 });

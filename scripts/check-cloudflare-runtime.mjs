@@ -1,4 +1,4 @@
-import { Miniflare } from "miniflare";
+import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 import { readdirSync, readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -12,7 +12,7 @@ const moduleNames = [
     (name) => name.endsWith(".js") && name !== "index.js",
   ),
 ];
-const mf = new Miniflare({
+const mf = new Miniflare(convertV4MiniflareOptions({
   modules: moduleNames.map((name) => ({
     type: "ESModule",
     path: path.join(serverRoot, name),
@@ -26,7 +26,7 @@ const mf = new Miniflare({
     APP_ORIGIN: "https://veridoc.test",
     BETTER_AUTH_SECRET: "local-runtime-test-key-with-more-than-32-characters",
   },
-});
+}));
 try {
   const db = await mf.getD1Database("DB");
   for (const name of readdirSync(path.join(root, "drizzle"))
